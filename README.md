@@ -1,7 +1,9 @@
+import requests
 from flask import Flask, jsonify
-import random
 
 app = Flask(__name__)
+
+API_KEY = "29f7a951494a099822a42d50af2c51c1"
 
 @app.route("/")
 def home():
@@ -9,22 +11,25 @@ def home():
 
 @app.route("/picks")
 def picks():
-    matches = [
-        "Barcelona vs Osasuna",
-        "Arsenal vs Fulham",
-        "Atalanta vs Genoa",
-        "Real Madrid vs Sevilla"
-    ]
 
-    results = []
-    for m in matches:
-        results.append({
-            "match": m,
-            "value": round(random.uniform(0.05, 0.18), 2),
-            "stake": round(random.uniform(10, 60), 2)
-        })
+    url = f"https://api.the-odds-api.com/v4/sports/soccer_epl/odds/?apiKey={API_KEY}&regions=eu&markets=h2h"
 
-    return jsonify(results)
+    res = requests.get(url)
+    data = res.json()
+
+    picks = []
+
+    for game in data[:5]:
+        try:
+            picks.append({
+                "match": game["home_team"] + " vs " + game["away_team"],
+                "value": 0.1,
+                "stake": 25
+            })
+        except:
+            continue
+
+    return jsonify(picks)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
